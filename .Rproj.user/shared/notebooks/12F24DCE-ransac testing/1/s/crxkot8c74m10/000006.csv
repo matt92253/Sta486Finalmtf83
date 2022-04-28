@@ -1,3 +1,0 @@
-"0","pts3 <- filter(pts2, Y < 11 & ( X > -1 & X < 0))"
-"0","ggplot( pts3, aes( x = X, y =Y, color = treeID, label = treeID))+"
-"0","  geom_point( size = 1)"

@@ -1,5 +1,0 @@
-"0",""
-"0","tree_22 <- filter( pts, treeID == 32 )"
-"0","ggplot( tree_22, aes( x =X, y =Y))+"
-"0","  geom_point()"
-"0",""

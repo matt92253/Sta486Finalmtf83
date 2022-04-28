@@ -1,8 +1,0 @@
-"0","c <- c( center, 0)"
-"0",""
-"0","pts4 <- rbind( pts3, c)"
-"0",""
-"0","rgl.open()"
-"0","rgl.bg( color = ""white"")"
-"0","rgl.planes( a = -0.6553, b = 0.7536, c = -0.0507, d = - 8.0816611 , color = ""red"" )"
-"0","rgl.points( pts4[ , 1:3],  color = get_colors(pts$treeID), size = 5)"

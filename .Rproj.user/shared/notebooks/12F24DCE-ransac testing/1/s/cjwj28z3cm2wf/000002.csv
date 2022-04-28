@@ -1,8 +1,0 @@
-"0","# matrix of las slice points with tree id"
-"0","m <- cbind( las_slice$X, las_slice$Y, las_slice$Z, las_slice$treeID)"
-"0",""
-"0","# assign tmp matrix the points for current tree id"
-"0",""
-"0","tmp <- m[m[ ,4] == 22,]"
-"0",""
-"0","tmp <- tmp[ , 1:3]"

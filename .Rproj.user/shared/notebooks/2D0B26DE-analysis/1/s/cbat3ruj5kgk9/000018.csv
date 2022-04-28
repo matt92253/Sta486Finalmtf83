@@ -1,4 +1,0 @@
-"0",""
-"0","# ggsave(""attempts by semester.png"",dpi=""retina"")"
-"0",""
-"0","# ggplot(df, aes(x = score, y = year ~ season, fill = year)) + geom_density_ridges()"

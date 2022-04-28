@@ -1,3 +1,0 @@
-"0","df <- as.data.frame(test)"
-"0","ggplot( df, aes( x = pc2, y = pc3))+"
-"0","  geom_point()"

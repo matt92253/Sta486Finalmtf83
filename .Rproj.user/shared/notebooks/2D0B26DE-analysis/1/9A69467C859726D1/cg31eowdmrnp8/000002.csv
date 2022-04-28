@@ -1,8 +1,0 @@
-"0","# anova( lm( score ~ covid, pre_post ))"
-"0","# "
-"0","# pre_post_model <- lm( score ~  covid, pre_post )"
-"0","# "
-"0","# pre_post_model %>% summary()"
-"0","# "
-"0","# plot( pre_post_model, which = 1:2)"
-"0",""

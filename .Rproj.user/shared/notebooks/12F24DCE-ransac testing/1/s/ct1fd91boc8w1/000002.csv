@@ -1,3 +1,0 @@
-"0","pts2 <- filter(pts, Y > 10 & ( X > -5 & X < 3))"
-"0","ggplot( pts, aes( x = X, y =Y, color = treeID, label = treeID))+"
-"0","  geom_point( size = .01)"

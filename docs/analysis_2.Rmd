@@ -110,7 +110,7 @@ single_attempt_tests$attempt <- "Single attempt taken, Fall 16 - Spring 18"
 
 
 
-no_retake <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
+no_retake <- filter( mat125data, year >= 19 | ( year == 18 & season == "fall"))
 
 no_retake$attempt = "Only one attempt allowed, Fall 18 - Fall 19"
 
@@ -125,19 +125,24 @@ df<- df %>% mutate( attempt = fct_relevel( attempt,
                                            "Single attempt taken, Fall 16 - Spring 18",
                                            "Only one attempt allowed, Fall 18 - Fall 19"))
 
+# df <- subset( df, section_Id != 15545713 & module_final == "M2" )
+
+# these sections and module tests had multiple attempts after spring 2018, so they were removed
+df<-df[!(df$section_Id==15545713 & df$module_final=="M2"),]
+df<-df[!(df$section_Id==15545721 & df$module_final=="M2"),]
+df <- na.omit(df)
+
+
 ggplot( df, aes( x = score, fill = attempt, color = attempt))+ 
   geom_density( alpha = .3)+
-  labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt")+ 
+  labs( title = "Fall 16 to Fall 21 Test Score Distribution By Attempt")+ 
   theme(legend.position= "bottom")+
-  guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  guides(fill=guide_legend(nrow=2,byrow=TRUE))+
+  facet_grid( year ~ season)
 
-ggsave("multiple and single attempt scores fall 16 to fall 19.png",dpi="retina")
+ggsave("multiple and single attempt scores fall 16 to fall 21.png",dpi="retina")
 
-# ggplot( df, aes( x = score, fill = attempt))+
-#   geom_boxplot( alpha = .3)+
-#   labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt")+
-#   theme(legend.position= "bottom")+
-#   guides(fill=guide_legend(nrow=4,byrow=TRUE))
+
 
 ```
 
@@ -222,13 +227,13 @@ ggplot( df1, aes( x = score, fill = attempt, color = attempt))+
 
 # ggsave("module attempt scores fall 16 to spring 18.png",dpi="retina")
 
-ggplot( df1, aes( x = score, fill = attempt))+ 
-  geom_boxplot( alpha = .3)+
-  labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules")+ 
-  theme(legend.position="bottom")+
-  guides(fill=guide_legend(nrow=4,byrow=TRUE))+
-  facet_grid( . ~ module_final)+ 
-  stat_summary()
+# ggplot( df1, aes( x = score, fill = attempt))+ 
+#   geom_boxplot( alpha = .3)+
+#   labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules")+ 
+#   theme(legend.position="bottom")+
+#   guides(fill=guide_legend(nrow=4,byrow=TRUE))+
+#   facet_grid( . ~ module_final)+ 
+#   stat_summary()
 
 ```
 

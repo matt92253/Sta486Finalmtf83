@@ -7,24 +7,14 @@ output: pdf_document
 
 ```{r, echo=F, warning=F, include=F}
 library(tidyverse)
-library( emmeans)
-library(ggridges)
+library(emmeans)
+library(cowplot)
+library(quantreg)
 load("~/Sta486Finalmtf83/data/mat125data.rda")
 ```
 
-
-# Introduction
-
-For the Math 125 data we were looking to answer 3 main questions:
-
-* Did Covid-19 have a significant effect on student test scores
-* Did offering a second attempt on module tests have a significant improvement in student grades that would make offering a second attempt worth the work
-* Was there a significant change in student scores during covid that would indicate students cheating
-
-
-# Covid-19 Effects on Grades
-
-
+# Pre and Post in person test scores
+## box plots
 ```{r, echo=F, warning=F}
 
 # data becomes more normal when we drop test scores that are zero
@@ -62,8 +52,7 @@ ggplot( pre_post, aes( x = module_final, y = score, fill = covid)) +
  ggsave("Pre and Post Covid In Person Module Test Scores.png",dpi="retina")
 
 ```
-
-\newpage
+## linear regression
 ```{r, echo=F, warning=F}
 anova( lm( score ~ module_final * covid, pre_post ))
 
@@ -75,20 +64,35 @@ plot( pre_post_model, which = 1:2)
 
 ```
 
-
-\newpage
+## contrasts
 ```{r, echo=F, warning=F}
 library(emmeans)
 
 emmeans(pre_post_model, pairwise ~ covid )
 
-emmeans(pre_post_model, pairwise ~ covid * module_final)
+emmeans(pre_post_model, pairwise ~ covid * module_final, at = list( module_final = "M1"))
+
+emmeans(pre_post_model, pairwise ~ covid * module_final, at = list( module_final = "M2"))
+
+emmeans(pre_post_model, pairwise ~ covid * module_final, at = list( module_final = "M3"))
+
+emmeans(pre_post_model, pairwise ~ covid * module_final, at = list( module_final = "M4"))
 
 ```
 
-\newpage
-# Second attempt differences
+## quantile regression
+```{r}
+qr_pre_post <- rq( formula = score ~ covid * module_final, data = pre_post, tau = 0.5)
+summary(qr_pre_post)
 
+```
+
+
+
+
+
+# pairwise differences
+## boxplot plot
 
 ```{r, echo=F, warning=F}
 
@@ -126,20 +130,22 @@ ggplot( pairwise_comp, aes( x = module_final, y = score_diff)) +
 ggsave("pairwise_differences.png", dpi="retina")
 
 ```
-\newpage
+## linear regression
 ```{r, echo=F, warning=F}
 pw_model <- lm( score_diff ~ module_final, pairwise_comp )
 summary(pw_model)
 anova( pw_model)
 plot( pw_model, which = 1:2)
 ```
-\newpage
+## contrasts
 ```{r, echo=F, warning=F}
 emmeans(pw_model, pairwise ~ module_final )
 ```
 
-\newpage
+
+
 # Changes in remote test scores
+## plot
 ```{r, echo = F, warning = F}
 
 tests <- mat125data
@@ -173,11 +179,15 @@ remote_learning <- remote_learning %>%
                                             "Spring 2021 (nau flex)",
                                             "Fall 2021 (in person after covid)" ))
 
-ggplot( remote_learning, aes( x = module_final, y = score, fill = remote_time_period)) +
+p1 <- ggplot( remote_learning, aes( x = remote_time_period, y = score, fill = remote_time_period)) +
   geom_boxplot(alpha = 0.65)+
-  labs( title = "Effects of Covid-19 and Remote Learning on Module Test Scores")+theme(legend.position= "bottom")+
+  labs( title = "Effects of Covid-19 and NAU Flex By Semester")+
+  theme(legend.position= "bottom",
+        axis.text.x=element_blank(),
+        legend.title = element_blank())+
   guides(fill=guide_legend(nrow=3,byrow=TRUE))
   
+p1
  ggsave("Effects of Covid-19 and Remote Learning.png",dpi="retina")
 
 
@@ -185,18 +195,38 @@ ggplot( remote_learning, aes( x = module_final, y = score, fill = remote_time_pe
 ```
 
 
-\newpage
-```{r, echo=F, warning=F}
-rl_model <- lm( score ~ module_final + remote_time_period, remote_learning)
+```{r}
+# p2 <- ggplot( remote_learning, aes( x = remote_time_period, y = score, fill = remote_time_period)) +
+#   geom_boxplot(alpha = 0.65)+
+#   labs( title = "Effects of Covid-19 and NAU Flex By Semester")+theme(legend.position= "none")+
+#   theme(axis.text.x=element_blank(),
+#         axis.title.x=element_blank())
+# 
+# p2
+```
+
+## linear regression
+```{r}
+rl_model <- lm( score ~  remote_time_period, remote_learning)
 summary(rl_model)
 anova( rl_model)
 plot( rl_model, which = 1:2)
 ```
 
-
+## contrasts
 ```{r, echo=F, warning=F}
 emmeans(rl_model, pairwise ~  remote_time_period )
 ```
+
+
+## quantile regression
+```{r}
+qr_remote<- rq( formula = score ~  remote_time_period, data = remote_learning)
+summary(qr_remote)
+```
+
+
+
 
 ```{r}
 
@@ -251,33 +281,13 @@ df<- df %>% mutate( attempt = fct_relevel( attempt,
 ggplot( df, aes( x = score, fill = attempt))+ 
   geom_density( alpha = .4)
 
-
+# ggplot( df, aes( x = score, fill = attempt))+ 
+#   geom_density( alpha = .3)+
+#   facet_grid( year ~ season)
 # ggsave("multiple and single attempt scores fall 16 to fall 19.png",dpi="retina")
 # ggplot(df, aes(x = score, y = attempt, fill = attempt)) + geom_density_ridges()
 ```
 
-```{r}
-
-
-df <- filter( df, attempt != "Single attempt allowed, Fall 18 - Fall 19" )
-
-ggplot( df, aes( x = score, fill = attempt))+ 
-  geom_density( alpha = .4)
-
-ggsave("multiple and single attempt scores fall 16 to spring 18.png",dpi="retina")
-
-```
-
-
-
-
-```{r}
-
-sanity_check <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
-sum(with(sanity_check , test_attempt == "T1"))
-sum(with(sanity_check , test_attempt == "T2"))
-
-```
 
 ```{r}
 
