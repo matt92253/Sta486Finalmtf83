@@ -1,0 +1,26 @@
+{
+    "id": "4177E0DF",
+    "path": "~/Sta486Finalmtf83/data-raw/blind data cleaning.R",
+    "project_path": "data-raw/blind data cleaning.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1649089324155.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "593,0",
+        "scrollLine": "415"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1649101329,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1649101329628,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,24 @@
+"0",""
+"0","# ggsave(""module attempt scores fall 16 to spring 18.png"",dpi=""retina"")"
+"0",""
+"0","ggplot( df1, aes( x = score, fill = attempt))+ "
+"0","  geom_boxplot( alpha = .3)+"
+"0","  labs( title = ""Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules"")+ "
+"0","  theme(legend.position=""bottom"")+"
+"0","  guides(fill=guide_legend(nrow=4,byrow=TRUE))+"
+"0","  facet_grid( . ~ module_final)+ "
+"0","  stat_summary()"
+"1","[1m[33mError[39m in [38;5;232m`check_required_aesthetics()`[39m:[22m
+[33m![39m stat_summary requires the following missing aesthetics: y
+Backtrace:
+[90m  1. [39m[1mbase[22m `<fn>`(x)
+[90m  2. [39mggplot2:::print.ggplot(x)
+[90m  4. [39mggplot2:::ggplot_build.ggplot(x)
+[90m  5. [39mggplot2 by_layer(function(l, d) l$compute_statistic(d, layout))
+[90m  6. [39mggplot2 f(l = layers[[i]], d = data[[i]])
+[90m  7. [39ml$compute_statistic(d, layout)
+[90m  8. [39mggplot2 f(..., self = self)
+[90m  9. [39mself$stat$compute_layer(data, self$computed_stat_params, layout)
+[90m 10. [39mggplot2 f(..., self = self)
+[90m 11. [39mggplot2:::check_required_aesthetics(...)
+"

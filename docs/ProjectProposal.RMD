@@ -1,0 +1,118 @@
+---
+title: "Proposal"
+author: "Matthew Flanders"
+date: "3/21/2022"
+output: pdf_document
+---
+
+```{r, echo = F, include=F}
+load("~/Sta486Finalmtf83/data/mat125data.rda")
+library(tidyverse)
+```
+For the final project I will be working for the MAT 125 course coordinator Ellie Blair to investigate student data and help find answers for some of the questions she has regarding student performance. She has three main questions that she would like answered.
+
+The Data she has comes from the Pearson website and  consists of five years of MAT 125 grades from many sections over these years. The data will need to be blinded to remain FERPA compliant and cleaned into a single file.
+
+The first question to answer is if Fall 2021 students are preforming worse than previous in person semesters. With students returning from remote learning, she feels there is a drop in student performance and would like to know if there is a statistically significant difference in the test scores. A box plot of Fall 2021 compared to Fall 2016 to Fall 2019 shows the differences on figure 1.
+
+Next, she is interested in finding out if student's grade benefits enough from a second attempt on exams for it to be worth the extra effort for the professors to offer a second attempt. We can see a box plot of this data in figure 2. 
+
+Lastly, she is interested in the grade improvement during remote learning. During remote leaning it seems students performed better on exams without the extra resources that would be offered on campus, this raises some questions about cheating, and she is interested to know if there is an increase in grades that support the idea that students are cheating on exams. Box plots for module test scores can be found for each semester on figure 3. 
+
+We are also planning to explore the data further to see if we can find other interesting findings. We plan to analyze professors and see if there are differences in student performance on exams, and we are planning to investigate the different sections offered by professors to see if there are performance differences between sections. Some of the differences in module test scores can be seen in figure 4. We may also be exploring the differences between seasons to see if students preform differently in the spring and fall seasons, the following graph can be seen in figure 5. Practice tests also seemed to have an effect on test performance and in the above graphs it was removed, in figure 6 test data can be seen for practice and non practice tests.
+
+For answering these we will be using ANOVA tests to evaluate if there is a significant difference and to be able to answer exactly how significant it is.
+
+
+```{r, echo = F, warning = F}
+
+
+mat125data <- filter( mat125data, score != 0 &
+                                  practice_test == 0 & 
+                                  learning_aid == 0 & 
+                                  honors_code == 0 & 
+                        
+                                  # pre_test == 0 )
+                        
+                                  pre_test == 0 &
+                                  module_final != "F1")
+
+```
+
+
+```{r, echo=F, warning=F}
+f16_f19 <- mat125data %>% filter( year <= 19) 
+f16_f19 <- filter( f16_f19,  year != 20 & season != "spring")
+f16_f19 <- filter( f16_f19, practice_test == 0)
+f16_f19$precovid <- "yes"
+
+f21 <- mat125data %>% filter( year == 21 & season == "fall")
+f21 <- filter( f21, f21$practice_test == 0)
+f21$precovid <- "no"
+
+pre_post <- rbind( f16_f19, f21)
+
+ggplot( pre_post, aes( x = module_final, y = score, fill = precovid)) +
+  geom_boxplot() + 
+  labs( title = "Pre and Post Covid Module Test Scores")
+
+```
+**Figure 1.** Box plot of pre and post covid module test data. Pre-covid data is from Fall of 2016 to Fall 2019, post-covid data is the first returning in person semester, Fall 2021.
+
+
+```{r, echo=F, warning=F}
+# for this graph we should only have students who took both exams
+
+
+
+
+no_final <- filter( mat125data, module_final != "F1")
+no_final <- filter( no_final, practice_test == 0)
+
+ggplot( no_final, aes( x = module_final, y = score, fill = test_attempt)) +
+  geom_boxplot() + 
+  labs( title = "First and Second Attempt Test Scores")
+```
+**Figure 2.** Box plot data of all MAT 125 module tests with first(T1) and second(T2) attempts.
+
+
+```{r, echo = F, warning = F}
+no_practice <- filter( mat125data, practice_test == 0)
+ggplot( no_practice, aes( x = module_final, y = score)) +
+  geom_boxplot() + 
+  facet_grid( year ~ season)+ 
+  labs( title = "Module Test Scores By Season and Year")
+
+# f18m4 <- subset( no_practice, module_final == "M4" & year == 18 & season == "fall")
+# ggplot( f18m4, aes( x = module_final, y = score)) +
+#   geom_boxplot()
+```
+**Figure 3.** Box plots of module test scores for each year and each semester. 
+
+
+```{r, echo=F, warning=F, fig.width= 5, fig.height= 8.5}
+ggplot( no_practice, aes( x = module_final, y = score)) +
+  geom_boxplot() + 
+  facet_grid( professor_Id ~ .)+ 
+  labs( title = "Module Test Scores by Professor")
+```
+
+**Figure 4.** Box plot data of module scores for each professor. 
+
+
+```{r, echo=F, warning=F}
+ggplot( no_practice, aes( x = module_final, y = score, fill = season)) +
+  geom_boxplot() + 
+  labs( title = "Spring and Fall Module Test Scores")
+```
+
+**Figure 5.** Box plot comparing Fall and Spring module test scores.
+
+```{r, echo=F, warning=F}
+ggplot( mat125data, aes( x = module_final, y = score, fill = factor(practice_test))) +
+  geom_boxplot()+ 
+  labs( title = "Practice and Non-Practice Test Scores")
+  
+```
+
+**Figure 6.** Box plots of module practice and non-practice test scores, 1 indicates a practice test and 0 a non-practice test.

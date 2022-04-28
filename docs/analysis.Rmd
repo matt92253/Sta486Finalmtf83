@@ -1,0 +1,339 @@
+---
+title: "Mat 125 Data Analysis"
+author: "Matthew Flanders"
+date: "3/30/2022"
+output: pdf_document
+---
+
+```{r, echo=F, warning=F, include=F}
+library(tidyverse)
+library( emmeans)
+library(ggridges)
+load("~/Sta486Finalmtf83/data/mat125data.rda")
+```
+
+
+# Introduction
+
+For the Math 125 data we were looking to answer 3 main questions:
+
+* Did Covid-19 have a significant effect on student test scores
+* Did offering a second attempt on module tests have a significant improvement in student grades that would make offering a second attempt worth the work
+* Was there a significant change in student scores during covid that would indicate students cheating
+
+
+# Covid-19 Effects on Grades
+
+
+```{r, echo=F, warning=F}
+
+# data becomes more normal when we drop test scores that are zero
+# also working with actual tests not pre, practice, honors code or learning aids 
+mat125data <- filter( mat125data, score != 0 &
+                                  practice_test == 0 & 
+                                  learning_aid == 0 & 
+                                  honors_code == 0 & 
+                                  pre_test == 0 &
+                                  module_final != "F1")
+
+# create precovid data frame, fall of 2019
+f19 <- mat125data %>% filter( year == 19 & season == "fall")
+f19$covid <- "fall 2019, before covid"
+
+# create post  covid data frame, fall of 2021
+f21 <- mat125data %>% filter( year == 21 & season == "fall")
+f21$covid <- "fall 2021, after covid"
+
+# bind the two data frames together for visualization
+pre_post <- rbind( f19, f21)
+
+# order the factors
+pre_post <- pre_post %>% 
+  mutate( covid = fct_relevel( covid,
+                               "fall 2019, before covid",
+                               "fall 2021, after covid"))
+
+# plot
+ggplot( pre_post, aes( x = module_final, y = score, fill = covid)) +
+  geom_boxplot( alpha = 0.8) + 
+  labs( title = "Pre and Post Covid In Person Module Test Scores")+
+  theme(legend.position="bottom")
+
+ ggsave("Pre and Post Covid In Person Module Test Scores.png",dpi="retina")
+
+```
+
+\newpage
+```{r, echo=F, warning=F}
+anova( lm( score ~ module_final * covid, pre_post ))
+
+pre_post_model <- lm( score ~ module_final * covid, pre_post )
+
+pre_post_model %>% summary()
+
+plot( pre_post_model, which = 1:2)
+
+```
+
+
+\newpage
+```{r, echo=F, warning=F}
+library(emmeans)
+
+emmeans(pre_post_model, pairwise ~ covid )
+
+emmeans(pre_post_model, pairwise ~ covid * module_final)
+
+```
+
+\newpage
+# Second attempt differences
+
+
+```{r, echo=F, warning=F}
+
+# build t2_attempt from mat125data using only T2 attempts and actual tests
+t2_attempts <- filter( mat125data, test_attempt == "T2")
+
+
+# check for duplicates
+# t2_attempts[ duplicated( t2_attempts[, 1:4]), ]
+
+# join second attempts and large data set
+# added section id to join to for students who took class twice
+pairwise_comp <- inner_join( t2_attempts, mat125data, by = c("Id",
+                                                             "module_final",
+                                                             "section_Id"))
+
+# remove duplicate entries for tests
+# mat125data has the full data set, this resulted in the previous inner join 
+# matching modules with the same attempts from t2_attempts
+pairwise_comp <- filter( pairwise_comp, test_attempt.x != test_attempt.y)
+
+# duplicate check
+# pairwise_comp[ duplicated( pairwise_comp[, 1:4]), ]
+
+# create difference column
+pairwise_comp$score_diff = pairwise_comp$score.x - pairwise_comp$score.y
+
+# plot
+ggplot( pairwise_comp, aes( x = module_final, y = score_diff)) +
+  geom_boxplot() +
+  labs( title = "Pairwise Differences Between First and Second Attempt Test Scores")+
+  ylab("Difference in Test Scores")+
+  xlab("Module")
+
+ggsave("pairwise_differences.png", dpi="retina")
+
+```
+\newpage
+```{r, echo=F, warning=F}
+pw_model <- lm( score_diff ~ module_final, pairwise_comp )
+summary(pw_model)
+anova( pw_model)
+plot( pw_model, which = 1:2)
+```
+\newpage
+```{r, echo=F, warning=F}
+emmeans(pw_model, pairwise ~ module_final )
+```
+
+\newpage
+# Changes in remote test scores
+```{r, echo = F, warning = F}
+
+tests <- mat125data
+
+# pre_remote
+pre <- filter( tests, year == 19 & season == "fall" )
+pre$remote_time_period = "Fall 2019 ( in person before covid)"
+
+# split semester
+split <- filter( tests, year == 20 & season == "spring" )
+split$remote_time_period = "Spring 2020 (split)"
+
+# remote
+f20 <- filter( tests, year == 20 & season == "fall" )
+s21 <- filter( tests, year == 21 & season == "spring")
+f20$remote_time_period = "Fall 2020 (nau flex)"
+s21$remote_time_period = "Spring 2021 (nau flex)"
+
+# post_remote
+f21 <- filter( tests, year == 21 & season == "fall" )
+f21$remote_time_period = "Fall 2021 (in person after covid)"
+
+
+remote_learning <- rbind(pre,split, f20, s21, f21)
+
+remote_learning <- remote_learning %>% 
+  mutate( remote_time_period = fct_relevel( remote_time_period,
+                                            "Fall 2019 ( in person before covid)",
+                                            "Spring 2020 (split)",
+                                            "Fall 2020 (nau flex)",
+                                            "Spring 2021 (nau flex)",
+                                            "Fall 2021 (in person after covid)" ))
+
+ggplot( remote_learning, aes( x = module_final, y = score, fill = remote_time_period)) +
+  geom_boxplot(alpha = 0.65)+
+  labs( title = "Effects of Covid-19 and Remote Learning on Module Test Scores")+theme(legend.position= "bottom")+
+  guides(fill=guide_legend(nrow=3,byrow=TRUE))
+  
+ ggsave("Effects of Covid-19 and Remote Learning.png",dpi="retina")
+
+
+
+```
+
+
+\newpage
+```{r, echo=F, warning=F}
+rl_model <- lm( score ~ module_final + remote_time_period, remote_learning)
+summary(rl_model)
+anova( rl_model)
+plot( rl_model, which = 1:2)
+```
+
+
+```{r, echo=F, warning=F}
+emmeans(rl_model, pairwise ~  remote_time_period )
+```
+
+```{r}
+
+
+# select t2 test scores and label them
+t2_attempts <- pairwise_comp %>% select( c(1, 2, 4, 5))
+t2_attempts <- t2_attempts %>% rename( "attempt" = 3, "score" = 4)
+t2_attempts$attempt <- "Attempt 2 scores, Fall 16 - Spring 18"
+
+
+# select t1 test scores and label them
+t1_attempts <- pairwise_comp %>% select( c( 1, 2, 13, 14))
+t1_attempts <- t1_attempts %>% rename( "attempt" = 3, "score" = 4)
+t1_attempts$attempt <- "Attempt 1 scores, Fall 16 - Spring 18"
+
+# bind first and second attempts
+attempts <- rbind( t1_attempts, t2_attempts)
+
+
+# length(unique( attempts$Id))
+# 2250 students took tests twice
+
+two_attempt_timeframe <- filter( mat125data, year <= 17 | ( year == 18 & season == "spring"))
+
+
+# length(unique(two_attempt_timeframe$Id))
+# 2852 total students during the two attempt time period
+
+
+# select students who took test once by not selecting those who took the test twice
+single_attempt_tests <- subset( two_attempt_timeframe, !(Id %in%  unique( attempts$Id)))
+single_attempt_tests$attempt <- "Single attempt taken, Fall 16 - Spring 18"
+
+single_attempt_tests <- select( single_attempt_tests, c(1, 2, 5, 13))
+
+# length(unique(single_attempt_tests$Id))
+
+no_retake <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
+
+no_retake$attempt = "Single attempt allowed, Fall 18 - Fall 19"
+
+no_retake <- select( no_retake, c(1, 2, 5, 13))
+
+df <- rbind( attempts, no_retake, single_attempt_tests)
+
+df<- df %>% mutate( attempt = fct_relevel( attempt,
+                                           "Attempt 1 scores, Fall 16 - Spring 18", 
+                                           "Attempt 2 scores, Fall 16 - Spring 18",
+                                           "Single attempt taken, Fall 16 - Spring 18",
+                                           "Single attempt allowed, Fall 18 - Fall 19"))
+
+ggplot( df, aes( x = score, fill = attempt))+ 
+  geom_density( alpha = .4)
+
+
+# ggsave("multiple and single attempt scores fall 16 to fall 19.png",dpi="retina")
+# ggplot(df, aes(x = score, y = attempt, fill = attempt)) + geom_density_ridges()
+```
+
+```{r}
+
+
+df <- filter( df, attempt != "Single attempt allowed, Fall 18 - Fall 19" )
+
+ggplot( df, aes( x = score, fill = attempt))+ 
+  geom_density( alpha = .4)
+
+ggsave("multiple and single attempt scores fall 16 to spring 18.png",dpi="retina")
+
+```
+
+
+
+
+```{r}
+
+sanity_check <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
+sum(with(sanity_check , test_attempt == "T1"))
+sum(with(sanity_check , test_attempt == "T2"))
+
+```
+
+```{r}
+
+single_attempt <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
+
+single_attempt$attempt = "single"
+
+single_attempt <- select( single_attempt, c(1, 2, 5, 13))
+
+df <- rbind( attempts, single_attempt)
+
+ggplot( df, aes( x = score, fill = attempt))+ 
+  geom_density( alpha = .3)
+
+
+```
+
+```{r}
+
+
+
+t2_attempts <- pairwise_comp %>% select( c(1, 2, 4, 5, 11, 12))
+t2_attempts <- t2_attempts %>% rename( "attempt" = 3, "score" = 4,
+                                       "season" = 5, "year" = 6)
+
+t1_attempts <- pairwise_comp %>% select( c( 1, 2, 13, 14, 11, 12))
+t1_attempts <- t1_attempts %>% rename( "attempt" = 3, "score" = 4,
+                                       "season" = 5, "year" = 6)
+
+attempts <- rbind( t1_attempts, t2_attempts)
+
+attempts <- filter( attempts, year < 19)
+
+single_attempt <- filter( mat125data, year >= 19 | ( year == 18 & season == "fall"))
+
+
+
+single_attempt$attempt = "single"
+
+single_attempt <- select( single_attempt, c(1, 2, 5, 13, 11, 12))
+
+df <- rbind( attempts, single_attempt)
+
+ggplot( df, aes( x = score, fill = attempt))+ 
+  geom_density( alpha = .3)+
+  facet_grid( year ~ season)
+
+# ggsave("attempts by semester.png",dpi="retina")
+
+# ggplot(df, aes(x = score, y = year ~ season, fill = year)) + geom_density_ridges()
+```
+
+```{r}
+
+ggplot(df, aes(x = score, y = year, fill = season)) +
+  geom_density_ridges( alpha = .5)
+
+```
+

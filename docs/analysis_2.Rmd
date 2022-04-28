@@ -1,0 +1,297 @@
+---
+title: "attempts"
+author: "Matthew Flanders"
+date: "4/11/2022"
+output: pdf_document
+---
+
+```{r ,echo=F, warning=F}
+library(tidyverse)
+library( emmeans)
+load("~/Sta486Finalmtf83/data/mat125data.rda")
+```
+
+
+
+```{r ,echo=F, warning=F}
+
+# data becomes more normal when we drop test scores that are zero
+# also working with actual tests not pre, practice, honors code or learning aids 
+mat125data <- filter( mat125data, score != 0 &
+                                  practice_test == 0 & 
+                                  learning_aid == 0 & 
+                                  honors_code == 0 & 
+                        
+                                  # pre_test == 0 )
+                        
+                                  pre_test == 0 &
+                                  module_final != "F1")
+
+```
+
+
+
+```{r ,echo=F, warning=F}
+
+# build t2_attempt from mat125data using only T2 attempts and actual tests
+t2_attempts <- filter( mat125data, test_attempt == "T2")
+
+# join second attempts and large data set
+# added section id to join to for students who took class twice
+pairwise_comp <- inner_join( t2_attempts, 
+                             mat125data, 
+                             by = c("Id",
+                                    "module_final",
+                                    "section_Id")
+                             )
+
+# remove duplicate entries for tests
+# mat125data has the full data set, this resulted in the previous inner join 
+# matching modules with the same attempts from t2_attempts
+pairwise_comp <- filter( pairwise_comp, test_attempt.x != test_attempt.y)
+
+# duplicate check
+# pairwise_comp[ duplicated( pairwise_comp[, 1:4]), ]
+
+# create difference column
+pairwise_comp$score_diff = pairwise_comp$score.x - pairwise_comp$score.y
+
+# # plot
+# ggplot( pairwise_comp, aes( x = module_final, y = score_diff)) +
+#   geom_boxplot() +
+#   labs( title = "Pairwise Differences Between First and Second Attempt Test Scores")+
+#   ylab("Difference in Test Scores")+
+#   xlab("Module")
+
+```
+
+
+```{r ,echo=F, warning=F}
+
+# select t2 test scores and label them
+t2_attempts <- pairwise_comp %>% select( c(1, 2, 3, 4, 5, 11, 12))
+t2_attempts <- t2_attempts %>% rename( "attempt" = 4,
+                                       "score" = 5,
+                                       "season" = 6,
+                                       "year" = 7)
+t2_attempts$attempt <- "Second attempt scores, Fall 16 - Spring 18"
+
+
+
+
+# select t1 test scores and label them
+t1_attempts <- pairwise_comp %>% select( c( 1, 2, 3, 13, 14, 20, 21))
+t1_attempts <- t1_attempts %>% rename( "attempt" = 4,
+                                       "score" = 5,
+                                       "season" = 6,
+                                       "year" = 7)
+t1_attempts$attempt <- "First attempt scores, Fall 16 - Spring 18"
+
+# bind first and second attempts
+attempts <- rbind( t1_attempts, t2_attempts)
+
+# attempts is 10552 individual tests taken
+# total tests taken during multiple attempts is 16058
+# single_attempt_tests should be 5506
+
+two_attempt_timeframe <- filter( mat125data,
+                                 year <= 17 |
+                                   ( year == 18 & season == "spring"))
+
+two_attempt_timeframe$attempt <- "all"
+two_attempt_timeframe <- select( two_attempt_timeframe, c( 1, 2, 3, 13, 5, 11, 12)) 
+
+
+# select tests that individual students only took once 
+single_attempt_tests<- setdiff( select(two_attempt_timeframe, -c(4)), select(attempts, -c(4) ))
+
+
+single_attempt_tests$attempt <- "Single attempt taken, Fall 16 - Spring 18"
+
+
+
+no_retake <- filter( mat125data, year == 19 | ( year == 18 & season == "fall"))
+
+no_retake$attempt = "Only one attempt allowed, Fall 18 - Fall 19"
+
+no_retake <- select( no_retake, c(1, 2, 3, 5, 13, 11, 12))
+no_retake <- no_retake %>% rename( )
+
+df <- rbind( attempts, no_retake, single_attempt_tests)
+
+df<- df %>% mutate( attempt = fct_relevel( attempt,
+                                           "First attempt scores, Fall 16 - Spring 18", 
+                                           "Second attempt scores, Fall 16 - Spring 18",
+                                           "Single attempt taken, Fall 16 - Spring 18",
+                                           "Only one attempt allowed, Fall 18 - Fall 19"))
+
+ggplot( df, aes( x = score, fill = attempt, color = attempt))+ 
+  geom_density( alpha = .3)+
+  labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt")+ 
+  theme(legend.position= "bottom")+
+  guides(fill=guide_legend(nrow=2,byrow=TRUE))
+
+ggsave("multiple and single attempt scores fall 16 to fall 19.png",dpi="retina")
+
+# ggplot( df, aes( x = score, fill = attempt))+
+#   geom_boxplot( alpha = .3)+
+#   labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt")+
+#   theme(legend.position= "bottom")+
+#   guides(fill=guide_legend(nrow=4,byrow=TRUE))
+
+```
+
+
+
+
+
+```{r ,echo=F, warning=F}
+
+
+df1 <- rbind( attempts, single_attempt_tests)
+
+# df1<- df1 %>% mutate( attempt = fct_relevel( attempt,
+#                                            "Attempt 1 scores, Fall 16 - Spring 18", 
+#                                            "Attempt 2 scores, Fall 16 - Spring 18",
+#                                            "Single attempt taken, Fall 16 - Spring 18",
+#                                            "Only one single attempt allowed, Fall 18 - Fall 19"))
+
+ggplot( df1, aes( x = score, fill = attempt, color = attempt))+ 
+  geom_density( alpha = .3)+
+  labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt")+ 
+  theme(legend.position="bottom")+
+  guides(fill=guide_legend(nrow=4,byrow=TRUE))
+
+# ggsave("multiple and single attempt scores fall 16 to spring 18.png",dpi="retina")
+# 
+# ggplot( df1, aes( x = score, fill = attempt))+ 
+#   geom_boxplot( alpha = .3)+
+#   labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt")+ 
+#   theme(legend.position="bottom")+
+#   guides(fill=guide_legend(nrow=4,byrow=TRUE))
+
+```
+
+```{r}
+
+model <- lm( score ~ attempt, df )
+anova( model)
+model %>% summary()
+plot( model, which = 1:2)
+
+```
+
+
+
+```{r}
+emmeans(model, pairwise ~ attempt )
+```
+
+
+```{r}
+
+ggplot( df, aes( x = score, fill = attempt, color = attempt))+
+  geom_density( alpha = .3)+
+  labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt and Modules")+
+  theme(legend.position= "bottom")+
+  guides(fill=guide_legend(nrow=2,byrow=TRUE))+
+  facet_grid( . ~ module_final)
+
+ggsave("module attempt scores fall 16 to fall 19.png",dpi="retina")
+
+ggplot( df, aes( x = score, fill = attempt))+ 
+  geom_boxplot( alpha = .3)+
+  labs( title = "Fall 16 to Fall 19 Test Score Distribution By Attempt and Modules")+ 
+  theme(legend.position= "bottom")+
+  guides(fill=guide_legend(nrow=2,byrow=TRUE))+
+  facet_grid( . ~ module_final)
+
+ggsave("boxplot attempt scores fall 16 to fall 19.png",dpi="retina")
+
+```
+
+
+```{r}
+
+ggplot( df1, aes( x = score, fill = attempt, color = attempt))+ 
+  geom_density( alpha = .3)+
+  labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules")+ 
+  theme(legend.position="bottom")+
+  guides(fill=guide_legend(nrow=4,byrow=TRUE))+
+  facet_grid( . ~ module_final)
+
+# ggsave("module attempt scores fall 16 to spring 18.png",dpi="retina")
+
+ggplot( df1, aes( x = score, fill = attempt))+ 
+  geom_boxplot( alpha = .3)+
+  labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules")+ 
+  theme(legend.position="bottom")+
+  guides(fill=guide_legend(nrow=4,byrow=TRUE))+
+  facet_grid( . ~ module_final)+ 
+  stat_summary()
+
+```
+
+```{r}
+
+df$attempt <- case_when(
+  df$attempt == "Second attempt scores, Fall 16 - Spring 18" ~ "2_of_2",
+  
+  df$attempt == "First attempt scores, Fall 16 - Spring 18" ~ "1_of_2",
+                                           
+  df$attempt == "Single attempt taken, Fall 16 - Spring 18" ~ "single",
+  
+  df$attempt == "Only one attempt allowed, Fall 18 - Fall 19" ~ "only one"
+)
+
+# df <- filter( df, attempt != "1_of_2" )
+
+model2 <- lm( score ~ attempt * module_final, df )
+anova( model2)
+model2 %>% summary()
+plot( model2, which = 1:2)
+
+```
+
+
+
+```{r}
+
+# comp <- emmeans(model2, pairwise ~ attempt * module_final )
+
+
+comp <- emmeans(model2, pairwise ~ attempt )
+
+comp <- comp$contrasts
+
+comp
+```
+
+
+
+
+```{r}
+
+emmeans(model2, pairwise ~ attempt * module_final, at = list( module_final = "M1"))
+
+```
+
+```{r}
+
+emmeans(model2, pairwise ~ attempt * module_final, at = list( module_final = "M2"))
+
+
+```
+
+
+```{r}
+
+emmeans(model2, pairwise ~ attempt * module_final, at = list( module_final = "M4"))
+```
+
+
+```{r}
+
+emmeans(model2, pairwise ~ attempt * module_final, at = list( module_final = "M4"))
+```
+

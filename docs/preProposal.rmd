@@ -1,0 +1,16 @@
+---
+title: "Final Project Pre Proposal"
+author: "Matthew Flanders"
+date: "2/27/2022"
+output: pdf_document
+---
+
+For the final project I will be working with Ellie Blair to help her analyze student data and answer some questions that she has regarding student performance in pre-calculus( MAT 125). After an initial meeting and some emails some of the questions that she would like to have answered are: 
+
+* When a second attempt for a test was permitted, did it yield a higher grade for students such that it makes giving the second attempt worth the effort?
+* Is there significant evidence to support that students of the Fall 2021 semester are scoring lower than the students did before the Covid-19 pandemic( before Spring 2020)?
+* Did student grades have a increase during remote learning?
+
+Professor Blair has supplied all the data the she has collected over the past few years from the test administering website. The data begins at Fall 2016 and goes through Fall 2021 where it contains data on student grades. The semesters from Fall of 2016 to Spring of 2020 have been transformed into a long format where as the semesters from Fall 2020 to Spring 2021 are in a wide format with each sections grade having separate files, and the last semester( Fall 2021) is all in one file with each section being given its own sheet in an excel file. 
+
+To being working on the project the data will need to be transformed so that no information is available that can be used to identify students. Students information containing names, id's and emails will be removed and replaced with a randomly assigned number. Professor names and emails will also be replaced to protect their privacy as well. Once the data has been blinded the raw data in excel files will need to be read in and transformed into a long format, before being combined and stored as a R data file. From this point analysis can begin and we can start to answer the questions Professor Blair has.

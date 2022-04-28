@@ -1,0 +1,2 @@
+"0","pts <- read.csv( file = ""C:/Users/mflan/Desktop/DensePatchA.csv"")"
+"0","pts$treeID <- as.factor( pts$treeID)"

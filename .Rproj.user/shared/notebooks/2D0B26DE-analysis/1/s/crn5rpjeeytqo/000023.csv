@@ -1,0 +1,5 @@
+"0",""
+"0","ggplot(df, aes(x = score, y = year, fill = season)) +"
+"0","  geom_density_ridges( alpha = .5)"
+"2","Picking joint bandwidth of 3.16
+"
