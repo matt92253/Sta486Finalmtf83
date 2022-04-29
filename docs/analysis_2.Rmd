@@ -50,9 +50,6 @@ pairwise_comp <- inner_join( t2_attempts,
 # matching modules with the same attempts from t2_attempts
 pairwise_comp <- filter( pairwise_comp, test_attempt.x != test_attempt.y)
 
-# duplicate check
-# pairwise_comp[ duplicated( pairwise_comp[, 1:4]), ]
-
 # create difference column
 pairwise_comp$score_diff = pairwise_comp$score.x - pairwise_comp$score.y
 
@@ -90,9 +87,6 @@ t1_attempts$attempt <- "First attempt scores, Fall 16 - Spring 18"
 # bind first and second attempts
 attempts <- rbind( t1_attempts, t2_attempts)
 
-# attempts is 10552 individual tests taken
-# total tests taken during multiple attempts is 16058
-# single_attempt_tests should be 5506
 
 two_attempt_timeframe <- filter( mat125data,
                                  year <= 17 |
@@ -125,7 +119,6 @@ df<- df %>% mutate( attempt = fct_relevel( attempt,
                                            "Single attempt taken, Fall 16 - Spring 18",
                                            "Only one attempt allowed, Fall 18 - Fall 19"))
 
-# df <- subset( df, section_Id != 15545713 & module_final == "M2" )
 
 # these sections and module tests had multiple attempts after spring 2018, so they were removed
 df<-df[!(df$section_Id==15545713 & df$module_final=="M2"),]
@@ -261,10 +254,6 @@ plot( model2, which = 1:2)
 
 
 ```{r}
-
-# comp <- emmeans(model2, pairwise ~ attempt * module_final )
-
-
 comp <- emmeans(model2, pairwise ~ attempt )
 
 comp <- comp$contrasts

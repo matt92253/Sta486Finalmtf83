@@ -27,6 +27,12 @@ mat125data <- filter( mat125data, score != 0 &
                                   module_final != "F1")
 
 # create precovid data frame, fall of 2019
+f18 <- mat125data %>% filter( year == 18 & season == "fall")
+f18$covid <- "fall 2018, before covid"
+# create precovid data frame, fall of 2019
+s19 <- mat125data %>% filter( year == 19 & season == "spring")
+s19$covid <- "spring 2019, before covid"
+# create precovid data frame, fall of 2019
 f19 <- mat125data %>% filter( year == 19 & season == "fall")
 f19$covid <- "fall 2019, before covid"
 
@@ -35,11 +41,13 @@ f21 <- mat125data %>% filter( year == 21 & season == "fall")
 f21$covid <- "fall 2021, after covid"
 
 # bind the two data frames together for visualization
-pre_post <- rbind( f19, f21)
+pre_post <- rbind( f18,s19, f19, f21)
 
 # order the factors
 pre_post <- pre_post %>% 
   mutate( covid = fct_relevel( covid,
+                               "fall 2018, before covid",
+                               "spring 2019, before covid",
                                "fall 2019, before covid",
                                "fall 2021, after covid"))
 
@@ -51,6 +59,21 @@ ggplot( pre_post, aes( x = module_final, y = score, fill = covid)) +
 
  ggsave("Pre and Post Covid In Person Module Test Scores.png",dpi="retina")
 
+ 
+ 
+ # additional semesters
+ ggplot( pre_post, aes( x = covid, y = score, fill = covid)) +
+  geom_boxplot( alpha = 0.8) + 
+  labs( title = "Pre and Post Covid In Person Module Test Scores")+
+  theme(legend.position="bottom")
+anova( lm( score ~  covid, pre_post ))
+pre_post_model <- lm( score ~ covid, pre_post )
+pre_post_model %>% summary()
+plot( pre_post_model, which = 1:2)
+
+qr_pre_post <- rq( formula = score ~ covid , data = pre_post, tau = 0.5)
+summary(qr_pre_post)
+ 
 ```
 ## linear regression
 ```{r, echo=F, warning=F}
@@ -100,8 +123,7 @@ summary(qr_pre_post)
 t2_attempts <- filter( mat125data, test_attempt == "T2")
 
 
-# check for duplicates
-# t2_attempts[ duplicated( t2_attempts[, 1:4]), ]
+
 
 # join second attempts and large data set
 # added section id to join to for students who took class twice
@@ -114,8 +136,6 @@ pairwise_comp <- inner_join( t2_attempts, mat125data, by = c("Id",
 # matching modules with the same attempts from t2_attempts
 pairwise_comp <- filter( pairwise_comp, test_attempt.x != test_attempt.y)
 
-# duplicate check
-# pairwise_comp[ duplicated( pairwise_comp[, 1:4]), ]
 
 # create difference column
 pairwise_comp$score_diff = pairwise_comp$score.x - pairwise_comp$score.y

@@ -43,7 +43,7 @@ rawF20s1 <- rawF20s1 %>%
           "M3T1" = 7,
           "M4T1" = 8)
 rawF20s1$professor <- "Weinberger,C"
-# rawF20s1$section_Id <- "1" #actual section id replaceing all the following
+# rawF20s1$section_Id <- "1" #actual section id replacing all the following
 rawF20s1$section_Id <- "1"
 
 rawF20s2 <- select( rawF20s2, 1, 2, 3, 11, 34, 54, 73, 98 )
@@ -496,14 +496,6 @@ unique(blindData$test)
 blindData$test <- gsub('Test (2nd Attempt) Honor Code Prerequisite', 'T2H',fixed= T, blindData$test)
 unique(blindData$test)
 
-
-# dont need due to removing quizzes on line 428
-# blindData$test <- gsub('Test (1st Attempt) Honor Code Prereq Quiz', 'T1H',fixed= T, blindData$test)
-# unique(blindData$test)
-#
-# blindData$test <- gsub('Test (2nd Attempt) Honor Code Prereq Quiz', 'T2H',fixed= T, blindData$test)
-# unique(blindData$test)
-
 # use lower case "p" for pre tests
 
 blindData$test <- gsub('M1P1: M 1 Pretest', 'M1T1p', blindData$test)
@@ -567,14 +559,9 @@ blindData$year <- sub('\\w', '', blindData$semester)
 blindData <- subset( blindData, select = -semester)
 
 
-
-# m1t2 <- blindData %>% filter( module_final == "M1" & test_attempt == "T2") #%>%
-  # filter( score != 0)
-
 m1 <- blindData %>% filter( module_final == "M1")
 not_m1 <- blindData %>%  filter ( module_final != "M1")
 
-# blindData2 <- blindData %>% filter( module_final != "M1" & test_attempt != "T2")
 
 m1_not_t2 <- m1 %>% filter( test_attempt != "T2")
 
@@ -586,7 +573,7 @@ mat125data  <- mat125data %>%
   mutate( season = fct_relevel( season, "spring")) %>%
   mutate( module_final = fct_relevel( module_final, "M1", "M2", "M3", "M4", "F1"))
 
-# blindData2$module_final %>% unique()
+
 
 write.csv( blindData, "blindData.csv")
 write.csv( mat125data, "mat125data.csv")
