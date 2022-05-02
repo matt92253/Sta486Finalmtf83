@@ -575,9 +575,9 @@ mat125data  <- mat125data %>%
 
 
 
-write.csv( blindData, "blindData.csv")
+# write.csv( blindData, "blindData.csv")
 write.csv( mat125data, "mat125data.csv")
 
 
 usethis::use_data( mat125data, overwrite = T)
-usethis::use_data( blindData, overwrite = T)
+# usethis::use_data( blindData, overwrite = T)

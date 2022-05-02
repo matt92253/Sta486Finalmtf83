@@ -5,14 +5,16 @@ date: "4/11/2022"
 output: pdf_document
 ---
 
+
+# Loading libraries 
 ```{r ,echo=F, warning=F}
 library(tidyverse)
-library( emmeans)
+library(emmeans)
 load("~/Sta486Finalmtf83/data/mat125data.rda")
 ```
 
 
-
+# additional cleaning
 ```{r ,echo=F, warning=F}
 
 # data becomes more normal when we drop test scores that are zero
@@ -21,16 +23,13 @@ mat125data <- filter( mat125data, score != 0 &
                                   practice_test == 0 & 
                                   learning_aid == 0 & 
                                   honors_code == 0 & 
-                        
-                                  # pre_test == 0 )
-                        
                                   pre_test == 0 &
                                   module_final != "F1")
 
 ```
 
 
-
+# pairwise comparison data frame
 ```{r ,echo=F, warning=F}
 
 # build t2_attempt from mat125data using only T2 attempts and actual tests
@@ -53,16 +52,9 @@ pairwise_comp <- filter( pairwise_comp, test_attempt.x != test_attempt.y)
 # create difference column
 pairwise_comp$score_diff = pairwise_comp$score.x - pairwise_comp$score.y
 
-# # plot
-# ggplot( pairwise_comp, aes( x = module_final, y = score_diff)) +
-#   geom_boxplot() +
-#   labs( title = "Pairwise Differences Between First and Second Attempt Test Scores")+
-#   ylab("Difference in Test Scores")+
-#   xlab("Module")
-
 ```
 
-
+# single and multiple attempts by semester
 ```{r ,echo=F, warning=F}
 
 # select t2 test scores and label them
@@ -93,7 +85,7 @@ two_attempt_timeframe <- filter( mat125data,
                                    ( year == 18 & season == "spring"))
 
 two_attempt_timeframe$attempt <- "all"
-two_attempt_timeframe <- select( two_attempt_timeframe, c( 1, 2, 3, 13, 5, 11, 12)) 
+two_attempt_timeframe <- select( two_attempt_timeframe, c( 1, 2, 3, 13, 5, 11, 12))
 
 
 # select tests that individual students only took once 
@@ -133,7 +125,6 @@ ggplot( df, aes( x = score, fill = attempt, color = attempt))+
   guides(fill=guide_legend(nrow=2,byrow=TRUE))+
   facet_grid( year ~ season)
 
-ggsave("multiple and single attempt scores fall 16 to fall 21.png",dpi="retina")
 
 
 
@@ -142,7 +133,7 @@ ggsave("multiple and single attempt scores fall 16 to fall 21.png",dpi="retina")
 
 
 
-
+# single vs multiple attempt during second attempt time period
 ```{r ,echo=F, warning=F}
 
 
@@ -160,16 +151,9 @@ ggplot( df1, aes( x = score, fill = attempt, color = attempt))+
   theme(legend.position="bottom")+
   guides(fill=guide_legend(nrow=4,byrow=TRUE))
 
-# ggsave("multiple and single attempt scores fall 16 to spring 18.png",dpi="retina")
-# 
-# ggplot( df1, aes( x = score, fill = attempt))+ 
-#   geom_boxplot( alpha = .3)+
-#   labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt")+ 
-#   theme(legend.position="bottom")+
-#   guides(fill=guide_legend(nrow=4,byrow=TRUE))
-
 ```
 
+# linear model, attempts 2016 to 2019
 ```{r}
 
 model <- lm( score ~ attempt, df )
@@ -185,7 +169,7 @@ plot( model, which = 1:2)
 emmeans(model, pairwise ~ attempt )
 ```
 
-
+# density plots and box plots of attempts 2016 to 2019
 ```{r}
 
 ggplot( df, aes( x = score, fill = attempt, color = attempt))+
@@ -195,7 +179,6 @@ ggplot( df, aes( x = score, fill = attempt, color = attempt))+
   guides(fill=guide_legend(nrow=2,byrow=TRUE))+
   facet_grid( . ~ module_final)
 
-ggsave("module attempt scores fall 16 to fall 19.png",dpi="retina")
 
 ggplot( df, aes( x = score, fill = attempt))+ 
   geom_boxplot( alpha = .3)+
@@ -204,11 +187,10 @@ ggplot( df, aes( x = score, fill = attempt))+
   guides(fill=guide_legend(nrow=2,byrow=TRUE))+
   facet_grid( . ~ module_final)
 
-ggsave("boxplot attempt scores fall 16 to fall 19.png",dpi="retina")
 
 ```
 
-
+# multiple attempt time period by attempts and module density plots
 ```{r}
 
 ggplot( df1, aes( x = score, fill = attempt, color = attempt))+ 
@@ -218,15 +200,7 @@ ggplot( df1, aes( x = score, fill = attempt, color = attempt))+
   guides(fill=guide_legend(nrow=4,byrow=TRUE))+
   facet_grid( . ~ module_final)
 
-# ggsave("module attempt scores fall 16 to spring 18.png",dpi="retina")
 
-# ggplot( df1, aes( x = score, fill = attempt))+ 
-#   geom_boxplot( alpha = .3)+
-#   labs( title = "Fall 16 to Spring 18 Test Score Distribution By Attempt and Modules")+ 
-#   theme(legend.position="bottom")+
-#   guides(fill=guide_legend(nrow=4,byrow=TRUE))+
-#   facet_grid( . ~ module_final)+ 
-#   stat_summary()
 
 ```
 
@@ -242,7 +216,7 @@ df$attempt <- case_when(
   df$attempt == "Only one attempt allowed, Fall 18 - Fall 19" ~ "only one"
 )
 
-# df <- filter( df, attempt != "1_of_2" )
+
 
 model2 <- lm( score ~ attempt * module_final, df )
 anova( model2)

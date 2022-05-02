@@ -20,9 +20,6 @@ mat125data <- filter( mat125data, score != 0 &
                                   practice_test == 0 & 
                                   learning_aid == 0 & 
                                   honors_code == 0 & 
-                        
-                                  # pre_test == 0)
-                        
                                   pre_test == 0 &
                                   module_final != "F1")
 ```
@@ -79,10 +76,6 @@ t1_attempts$attempt <- "1x"
 
 # bind first and second attempts
 attempts <- rbind( t1_attempts, t2_attempts)
-
-# attempts is 10552 individual tests taken
-# total tests taken during multiple attempts is 18657
-# single_attempt_tests should be 8105
 
 two_attempt_timeframe <- filter( mat125data,
                                  year <= 17 |
